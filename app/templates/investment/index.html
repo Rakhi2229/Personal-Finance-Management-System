@@ -1,0 +1,504 @@
+{% extends 'base.html' %}
+
+{% block title %}Investments & Portfolio - PFM Pro{% endblock %}
+
+{% block content %}
+<!-- ==========================================================================
+     INDMONEY-INSPIRED EXECUTIVE PORTFOLIO BANNER
+     ========================================================================== -->
+<div class="glass-card card-accent-bar p-4 mb-4 rounded-4">
+    <div class="row align-items-center g-4">
+        <!-- Left: Networth Value & Return P&L -->
+        <div class="col-md-5 border-end-md border-secondary border-opacity-25">
+            <span class="text-uppercase fw-bold small d-block mb-1" style="color: #CBD5E1; letter-spacing: 0.8px;">Total Portfolio Networth</span>
+            <h1 class="fw-extrabold text-white mb-2" style="font-size: 2.5rem;">{{ portfolio_value | currency }}</h1>
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                <span class="badge {% if total_gain >= 0 %}bg-success text-success{% else %}bg-danger text-danger{% endif %} bg-opacity-25 border {% if total_gain >= 0 %}border-success{% else %}border-danger{% endif %} px-3 py-1.5 rounded-pill fw-bold">
+                    <i class="fa-solid {% if total_gain >= 0 %}fa-arrow-trend-up{% else %}fa-arrow-trend-down{% endif %} me-1"></i>{% if total_gain >= 0 %}+{% endif %}{{ portfolio_return_pct | percentage }} Overall P&L
+                </span>
+                <span class="small fw-bold {% if total_gain >= 0 %}text-success{% else %}text-danger{% endif %}">
+                    ({% if total_gain >= 0 %}+{% endif %}{{ total_gain | currency }})
+                </span>
+            </div>
+        </div>
+
+        <!-- Right: INDmoney Grid Breakdown -->
+        <div class="col-md-7">
+            <div class="row g-3">
+                <div class="col-6 col-sm-4">
+                    <div class="p-3.5 rounded-3 bg-dark border border-secondary border-opacity-25">
+                        <span class="small fw-bold text-uppercase d-block mb-1" style="color: #CBD5E1;">Total Capital Invested</span>
+                        <h5 class="fw-bold {% if total_gain >= 0 %}text-success{% else %}text-danger{% endif %} mb-0">{{ total_invested | currency }}</h5>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-4">
+                    <div class="p-3.5 rounded-3 bg-dark border border-secondary border-opacity-25">
+                        <span class="small fw-bold text-uppercase d-block mb-1" style="color: #CBD5E1;">Today's Gain</span>
+                        <h5 class="fw-bold {% if todays_gain >= 0 %}text-success{% else %}text-danger{% endif %} mb-0">
+                            {% if todays_gain >= 0 %}+{% endif %}{{ todays_gain | currency }}
+                        </h5>
+                    </div>
+                </div>
+                <div class="col-6 col-sm-4">
+                    <div class="p-3.5 rounded-3 bg-dark border border-secondary border-opacity-25">
+                        <span class="small fw-bold text-uppercase d-block mb-1" style="color: #CBD5E1;">Est. Monthly Passive Yield</span>
+                        <h5 class="fw-bold text-info mb-0">{{ monthly_passive | currency }}/mo</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================================================
+     INDMONEY-INSPIRED TAB NAVIGATION
+     ========================================================================== -->
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+    <ul class="nav nav-pills custom-groww-tabs gap-2" id="portfolioTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold px-4 py-2 rounded-pill" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab">
+                <i class="fa-solid fa-chart-line me-2"></i> Performance & Allocation
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold px-4 py-2 rounded-pill" id="holdings-tab" data-bs-toggle="tab" data-bs-target="#holdings" type="button" role="tab">
+                <i class="fa-solid fa-layer-group me-2"></i> Active Holdings ({{ investments | length }})
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold px-4 py-2 rounded-pill" id="sip-tab" data-bs-toggle="tab" data-bs-target="#sip" type="button" role="tab">
+                <i class="fa-solid fa-calculator me-2"></i> Future Wealth Simulator
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold px-4 py-2 rounded-pill" id="safety-tab" data-bs-toggle="tab" data-bs-target="#safety" type="button" role="tab">
+                <i class="fa-solid fa-shield-halved me-2"></i> Emergency Cushion
+            </button>
+        </li>
+    </ul>
+
+    <button class="btn btn-emerald fw-bold px-4 py-2 rounded-pill" data-bs-toggle="modal" data-bs-target="#addInvestmentModal">
+        <i class="fa-solid fa-plus-circle me-1"></i> + Add Holding
+    </button>
+</div>
+
+<!-- ==========================================================================
+     TAB CONTENT PANELS
+     ========================================================================== -->
+<div class="tab-content" id="portfolioTabContent">
+    
+    <!-- TAB 1: PERFORMANCE & ALLOCATION CHARTS -->
+    <div class="tab-pane fade show active" id="overview" role="tabpanel">
+        <div class="row g-4">
+            <!-- Line Chart with Interactive Timeframe Buttons -->
+            <div class="col-lg-8">
+                <div class="glass-card p-4 h-100 rounded-4">
+                    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-3">
+                        <div>
+                            <h5 class="fw-bold text-white mb-1"><i class="fa-solid fa-chart-area me-2 text-success"></i> Networth Performance Curve</h5>
+                            <p class="small mb-0" style="color: #CBD5E1;">Interactive portfolio growth chart</p>
+                        </div>
+                        <div class="btn-group btn-group-sm rounded-pill p-1 bg-dark border border-secondary border-opacity-50" role="group" id="timeframeGroup">
+                            <button type="button" class="btn btn-dark text-white fw-bold px-3 rounded-pill active" onclick="switchTimeframe('1D', this)">1D</button>
+                            <button type="button" class="btn btn-dark text-white fw-bold px-3 rounded-pill" onclick="switchTimeframe('1M', this)">1M</button>
+                            <button type="button" class="btn btn-dark text-white fw-bold px-3 rounded-pill" onclick="switchTimeframe('6M', this)">6M</button>
+                            <button type="button" class="btn btn-dark text-white fw-bold px-3 rounded-pill" onclick="switchTimeframe('1Y', this)">1Y</button>
+                            <button type="button" class="btn btn-dark text-white fw-bold px-3 rounded-pill" onclick="switchTimeframe('ALL', this)">ALL</button>
+                        </div>
+                    </div>
+                    <div style="height: 290px;">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Asset Allocation Donut Chart -->
+            <div class="col-lg-4">
+                <div class="glass-card p-4 h-100 rounded-4">
+                    <h5 class="fw-bold text-white mb-1"><i class="fa-solid fa-chart-pie me-2 text-warning"></i> Asset Allocation</h5>
+                    <p class="small mb-3" style="color: #CBD5E1;">Share across Stocks, Funds, Gold, & FD</p>
+                    
+                    <div style="height: 250px;" class="d-flex align-items-center justify-content-center">
+                        <canvas id="assetAllocationChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 2: ACTIVE HOLDINGS TABLE -->
+    <div class="tab-pane fade" id="holdings" role="tabpanel">
+        <div class="glass-card p-4 rounded-4">
+            <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+                <h5 class="fw-bold text-white mb-0"><i class="fa-solid fa-list-check me-2 text-warning"></i> Portfolio Holdings</h5>
+                
+                <!-- Category Filter Buttons -->
+                <div class="btn-group btn-group-sm rounded-pill p-1 bg-dark border border-secondary border-opacity-50" role="group">
+                    <button type="button" class="btn btn-dark text-white fw-bold px-3 rounded-pill active" onclick="filterHoldings('ALL', this)">All</button>
+                    <button type="button" class="btn btn-dark text-white fw-bold px-3 rounded-pill" onclick="filterHoldings('Stocks', this)">Stocks</button>
+                    <button type="button" class="btn btn-dark text-white fw-bold px-3 rounded-pill" onclick="filterHoldings('Mutual Funds', this)">Mutual Funds</button>
+                    <button type="button" class="btn btn-dark text-white fw-bold px-3 rounded-pill" onclick="filterHoldings('Gold', this)">Gold</button>
+                    <button type="button" class="btn btn-dark text-white fw-bold px-3 rounded-pill" onclick="filterHoldings('FD', this)">FD</button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-dark-custom align-middle mb-0" id="holdingsTable">
+                    <thead>
+                        <tr>
+                            <th>Asset Name</th>
+                            <th>Category</th>
+                            <th>Invested Amount</th>
+                            <th>Current Value</th>
+                            <th>Expected CAGR</th>
+                            <th>Gain / Loss</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if investments %}
+                            {% for inv in investments %}
+                            <tr class="holding-row" data-type="{{ inv.type }}">
+                                <td class="fw-bold text-white fs-6">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="rounded-circle bg-primary bg-opacity-25 text-primary fw-bold d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
+                                            {{ inv.title[0].upper() }}
+                                        </div>
+                                        <span>{{ inv.title }}</span>
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-warning bg-opacity-25 text-warning border border-warning px-2.5 py-1.5 rounded-pill fw-bold">{{ inv.type }}</span></td>
+                                <td class="fw-bold {% if inv.absolute_return >= 0 %}text-success{% else %}text-danger{% endif %} fs-6">
+                                    {{ inv.amount_invested | currency }}
+                                </td>
+                                <td class="fw-bold text-white fs-6">{{ inv.current_value | currency }}</td>
+                                <td class="text-info fw-bold">{{ inv.expected_return_rate }}% p.a</td>
+                                <td class="fw-bold {% if inv.absolute_return >= 0 %}text-success{% else %}text-danger{% endif %} fs-6">
+                                    {% if inv.absolute_return >= 0 %}+{% endif %}{{ inv.absolute_return | currency }} ({{ inv.percentage_return | percentage }})
+                                </td>
+                                <td class="text-end">
+                                    <form action="{{ url_for('investment.delete', id=inv.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Remove investment entry from portfolio?');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-circle"><i class="fa-solid fa-trash"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="empty-state-box py-5 text-center">
+                                    <i class="fa-solid fa-chart-line fa-4x text-warning mb-3"></i>
+                                    <h5 class="fw-bold text-white mb-1">No Investment Holdings Recorded</h5>
+                                    <p style="color: #CBD5E1; max-width: 450px;" class="mx-auto mb-3">Track your Mutual Funds, Stocks, Gold, or FD wealth compounding live!</p>
+                                    <button class="btn btn-emerald fw-bold px-4 py-2 rounded-pill" data-bs-toggle="modal" data-bs-target="#addInvestmentModal">
+                                        <i class="fa-solid fa-plus-circle me-1"></i> Add Your First Investment
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 3: FUTURE WEALTH CALCULATOR -->
+    <div class="tab-pane fade" id="sip" role="tabpanel">
+        <div class="glass-card p-4 rounded-4">
+            <h5 class="fw-bold text-white mb-4"><i class="fa-solid fa-calculator me-2 text-warning"></i> Future Wealth Compound Simulator</h5>
+            
+            <div class="row g-4 align-items-center">
+                <!-- Interactive Sliders -->
+                <div class="col-lg-7">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small fw-bold mb-1">
+                            <label class="form-label mb-0">Monthly SIP Amount (₹)</label>
+                            <span id="sipValText" class="text-success fs-6 fw-bold">₹10,000</span>
+                        </div>
+                        <input type="range" class="form-range" id="sipRange" min="500" max="200000" step="500" value="10000" oninput="updateWealthSimulator()">
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small fw-bold mb-1">
+                            <label class="form-label mb-0">Lump Sum Principal (₹)</label>
+                            <span id="lumpValText" class="text-warning fs-6 fw-bold">₹50,000</span>
+                        </div>
+                        <input type="range" class="form-range" id="lumpRange" min="0" max="1000000" step="5000" value="50000" oninput="updateWealthSimulator()">
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small fw-bold mb-1">
+                            <label class="form-label mb-0">Expected CAGR (% p.a)</label>
+                            <span id="rateValText" class="text-info fs-6 fw-bold">12.0%</span>
+                        </div>
+                        <input type="range" class="form-range" id="rateRange" min="1" max="30" step="0.5" value="12" oninput="updateWealthSimulator()">
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small fw-bold mb-1">
+                            <label class="form-label mb-0">Time Horizon (Years)</label>
+                            <span id="yearValText" class="text-white fs-6 fw-bold">10 Years</span>
+                        </div>
+                        <input type="range" class="form-range" id="yearRange" min="1" max="35" step="1" value="10" oninput="updateWealthSimulator()">
+                    </div>
+                </div>
+
+                <!-- Real-time Output Card -->
+                <div class="col-lg-5">
+                    <div class="p-4 rounded-4 bg-dark border border-success border-opacity-50 text-center">
+                        <small style="color: #CBD5E1;" class="fw-bold text-uppercase d-block mb-1">Estimated Future Wealth</small>
+                        <h2 id="projectedWealthText" class="fw-extrabold text-success mb-3 fs-2">₹24,88,410.11</h2>
+                        
+                        <div class="p-3 rounded-3 bg-secondary bg-opacity-10 border border-secondary border-opacity-25 mb-3">
+                            <div class="d-flex justify-content-between small fw-semibold mb-2" style="color: #CBD5E1;">
+                                <span>Invested Amount:</span>
+                                <strong id="projInvestedText" class="text-white">₹12,50,000</strong>
+                            </div>
+                            <div class="d-flex justify-content-between small fw-semibold" style="color: #CBD5E1;">
+                                <span>Est. Returns Profit:</span>
+                                <strong id="projProfitText" class="text-success">+₹12,38,410</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 4: SAFETY CUSHION -->
+    <div class="tab-pane fade" id="safety" role="tabpanel">
+        <div class="glass-card p-4 rounded-4">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h5 class="fw-bold text-white mb-0"><i class="fa-solid fa-shield-halved me-2 text-info"></i> Emergency Safety Net</h5>
+                <span class="badge bg-{{ safety_badge }} px-3 py-1.5 rounded-pill fw-bold fs-6">{{ safety_text }}</span>
+            </div>
+
+            <p style="color: #CBD5E1;" class="small fw-medium mb-3">
+                Target safety shield is 6 months of expenses (<strong class="text-white">{{ target_emergency_amount | currency }}</strong>). Covered in liquid assets (FD/Gold):
+            </p>
+
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span style="color: #E2E8F0;" class="fw-semibold small">Current Liquid Savings: <strong class="text-white">{{ liquid_current_amount | currency }}</strong></span>
+                <span class="fw-extrabold text-info fs-6">{{ emergency_pct | percentage }}</span>
+            </div>
+
+            <div class="progress bg-dark mb-3" style="height: 12px; border-radius: 6px;">
+                <div class="progress-bar bg-info" role="progressbar" style="width: {{ emergency_pct }}%"></div>
+            </div>
+
+            <div class="d-flex justify-content-between small fw-semibold" style="color: #CBD5E1;">
+                <span>Remaining Deficit: <strong class="text-warning">{{ emergency_remaining | currency }}</strong></span>
+                <span>Safety Score: <strong class="text-success">{{ safety_score }}/100</strong></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Add Investment -->
+<div class="modal fade" id="addInvestmentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header border-secondary border-opacity-25">
+                <h5 class="modal-title text-white fw-bold"><i class="fa-solid fa-plus-circle me-2 text-warning"></i> Add Investment Entry</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('investment.add') }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Asset Title</label>
+                        <input type="text" name="title" class="form-control" placeholder="e.g. Nifty 50 Index Fund, Sovereign Gold SGB, HDFC Stock" required>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label">Asset Type</label>
+                            <select name="type" class="form-select">
+                                <option value="Stocks">Stocks</option>
+                                <option value="Mutual Funds" selected>Mutual Funds</option>
+                                <option value="Gold">Gold</option>
+                                <option value="FD">FD</option>
+                                <option value="Crypto">Crypto</option>
+                                <option value="Bonds">Bonds</option>
+                                <option value="PPF">PPF</option>
+                                <option value="RD">RD</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Expected Return (% p.a)</label>
+                            <input type="number" step="0.5" name="expected_return_rate" class="form-control" value="12.0">
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label">Invested Amount (INR)</label>
+                            <input type="number" step="100" name="amount_invested" class="form-control" placeholder="50000" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Current Value (INR)</label>
+                            <input type="number" step="100" name="current_value" class="form-control" placeholder="62000" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Start Date</label>
+                        <input type="date" name="start_date" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary border-opacity-25">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-emerald fw-bold">Save Investment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const timeframesData = {{ timeframes_data | tojson }};
+    let performanceChart = null;
+
+    document.addEventListener("DOMContentLoaded", function () {
+        // Line Chart
+        const ctxPerf = document.getElementById('performanceChart').getContext('2d');
+        
+        performanceChart = new Chart(ctxPerf, {
+            type: 'line',
+            data: {
+                labels: timeframesData['1D'].labels,
+                datasets: [{
+                    label: 'Portfolio Value (₹)',
+                    data: timeframesData['1D'].data,
+                    borderColor: '#10B981',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#10B981',
+                    pointRadius: 4,
+                    tension: 0.35,
+                    fill: true,
+                    backgroundColor: createGradient(ctxPerf, '#10B981')
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { ticks: { color: '#E2E8F0', font: { weight: 'bold' } }, grid: { color: 'rgba(255,255,255,0.06)' } },
+                    x: { ticks: { color: '#E2E8F0', font: { weight: 'bold' } }, grid: { display: false } }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+
+        // Donut Chart
+        const allocLabels = {{ alloc_labels | tojson }};
+        const allocData = {{ alloc_values | tojson }};
+
+        const ctxAlloc = document.getElementById('assetAllocationChart').getContext('2d');
+        new Chart(ctxAlloc, {
+            type: 'doughnut',
+            data: {
+                labels: allocLabels,
+                datasets: [{
+                    data: allocData,
+                    backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EF4444', '#06B6D4', '#EC4899'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: '#E2E8F0', font: { size: 11, weight: 'bold' }, padding: 12 } }
+                }
+            }
+        });
+
+        updateWealthSimulator();
+    });
+
+    function createGradient(ctx, color) {
+        const gradient = ctx.createLinearGradient(0, 0, 0, 260);
+        gradient.addColorStop(0, color === '#10B981' ? 'rgba(16, 185, 129, 0.35)' : 'rgba(239, 68, 68, 0.35)');
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0.0)');
+        return gradient;
+    }
+
+    function switchTimeframe(tf, btnElement) {
+        document.querySelectorAll('#timeframeGroup button').forEach(b => b.classList.remove('active', 'bg-success'));
+        btnElement.classList.add('active', 'bg-success');
+
+        if (performanceChart && timeframesData[tf]) {
+            const dataObj = timeframesData[tf];
+            performanceChart.data.labels = dataObj.labels;
+            performanceChart.data.datasets[0].data = dataObj.data;
+
+            const firstVal = dataObj.data[0] || 0;
+            const lastVal = dataObj.data[dataObj.data.length - 1] || 0;
+            const lineColor = lastVal >= firstVal ? '#10B981' : '#EF4444';
+
+            performanceChart.data.datasets[0].borderColor = lineColor;
+            performanceChart.data.datasets[0].pointBackgroundColor = lineColor;
+            const ctxPerf = document.getElementById('performanceChart').getContext('2d');
+            performanceChart.data.datasets[0].backgroundColor = createGradient(ctxPerf, lineColor);
+
+            performanceChart.update();
+        }
+    }
+
+    function updateWealthSimulator() {
+        const sip = parseFloat(document.getElementById('sipRange').value || 0);
+        const lump = parseFloat(document.getElementById('lumpRange').value || 0);
+        const rate = parseFloat(document.getElementById('rateRange').value || 0);
+        const years = parseInt(document.getElementById('yearRange').value || 0);
+
+        document.getElementById('sipValText').innerText = "₹" + sip.toLocaleString('en-IN');
+        document.getElementById('lumpValText').innerText = "₹" + lump.toLocaleString('en-IN');
+        document.getElementById('rateValText').innerText = rate.toFixed(1) + "%";
+        document.getElementById('yearValText').innerText = years + " Years";
+
+        const monthlyRate = rate / 12.0 / 100.0;
+        const totalMonths = years * 12;
+
+        const futureLump = lump * Math.pow(1 + monthlyRate, totalMonths);
+        let futureSip = 0;
+        if (monthlyRate > 0) {
+            futureSip = sip * ((Math.pow(1 + monthlyRate, totalMonths) - 1) / monthlyRate) * (1 + monthlyRate);
+        } else {
+            futureSip = sip * totalMonths;
+        }
+
+        const totalWealth = Math.round(futureLump + futureSip);
+        const totalInvested = Math.round(lump + (sip * totalMonths));
+        const netProfit = Math.round(totalWealth - totalInvested);
+
+        document.getElementById('projectedWealthText').innerText = "₹" + totalWealth.toLocaleString('en-IN', { minimumFractionDigits: 2 });
+        document.getElementById('projInvestedText').innerText = "₹" + totalInvested.toLocaleString('en-IN', { minimumFractionDigits: 2 });
+
+        const projProfitText = document.getElementById('projProfitText');
+        if (netProfit >= 0) {
+            projProfitText.className = "text-success fw-bold";
+            projProfitText.innerText = "+₹" + netProfit.toLocaleString('en-IN', { minimumFractionDigits: 2 });
+        } else {
+            projProfitText.className = "text-danger fw-bold";
+            projProfitText.innerText = "-₹" + Math.abs(netProfit).toLocaleString('en-IN', { minimumFractionDigits: 2 });
+        }
+    }
+
+    function filterHoldings(type, btnElement) {
+        document.querySelectorAll('#holdings .btn-group button').forEach(b => b.classList.remove('active', 'bg-warning', 'text-dark'));
+        btnElement.classList.add('active');
+
+        const rows = document.querySelectorAll('.holding-row');
+        rows.forEach(row => {
+            const rowType = row.getAttribute('data-type');
+            if (type === 'ALL' || rowType === type) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+</script>
+{% endblock %}

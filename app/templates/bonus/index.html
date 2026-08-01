@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+
+{% block title %}Bonus Features & Tools - PFM FinTech Platform{% endblock %}
+{% block page_heading %}Advanced Tools & Bonus Modules{% endblock %}
+
+{% block content %}
+<!-- Navigation Tabs -->
+<ul class="nav nav-pills glass-card p-2 mb-4 gap-2" id="bonusTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active text-white fw-semibold" id="ocr-tab" data-bs-toggle="tab" data-bs-target="#ocr-content" type="button" role="tab">
+            <i class="fa-solid fa-receipt me-2 text-danger"></i> OCR Receipt Scanner
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link text-white fw-semibold" id="badges-tab" data-bs-toggle="tab" data-bs-target="#badges-content" type="button" role="tab">
+            <i class="fa-solid fa-trophy me-2 text-warning"></i> Badges & Challenges
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link text-white fw-semibold" id="growth-tab" data-bs-toggle="tab" data-bs-target="#growth-content" type="button" role="tab">
+            <i class="fa-solid fa-chart-line me-2 text-success"></i> Growth Simulator
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link text-white fw-semibold" id="backup-tab" data-bs-toggle="tab" data-bs-target="#backup-content" type="button" role="tab">
+            <i class="fa-solid fa-database me-2 text-info"></i> Backup & Admin
+        </button>
+    </li>
+</ul>
+
+<!-- Tab Content -->
+<div class="tab-content" id="bonusTabsContent">
+
+    <!-- Tab 1: Receipt Scanner -->
+    <div class="tab-pane fade show active" id="ocr-content" role="tabpanel">
+        <div class="glass-card p-4">
+            <h4 class="fw-bold text-white mb-2"><i class="fa-solid fa-receipt text-danger me-2"></i> OCR Receipt Auto-Scanner</h4>
+            <p class="text-muted small mb-4">Paste receipt raw text or upload a receipt file snippet to automatically extract Merchant, Amount, Category & Date.</p>
+
+            <form action="{{ url_for('bonus.scan_receipt') }}" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-semibold">Paste Receipt Text / Snippet</label>
+                    <textarea name="receipt_text" class="form-control" rows="5" placeholder="Swiggy Order #9812&#10;Total Amount: Rs. 1450.00&#10;Date: 2026-07-28"></textarea>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label text-muted small fw-semibold">Or Upload Receipt File Snippet (.txt / .json)</label>
+                    <input type="file" name="receipt_file" class="form-control">
+                </div>
+
+                <div class="form-check mb-4">
+                    <input class="form-check-input" type="checkbox" name="auto_save" id="autoSaveCheck" checked>
+                    <label class="form-check-label text-muted small" for="autoSaveCheck">
+                        Automatically record as a new expense entry upon scanning
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-emerald px-4 py-2">
+                    <i class="fa-solid fa-wand-magic-sparkles me-2"></i> Scan & Process Receipt
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tab 2: Badges & Monthly Challenges -->
+    <div class="tab-pane fade" id="badges-content" role="tabpanel">
+        <div class="glass-card p-4 mb-4">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <div>
+                    <h4 class="fw-bold text-white mb-1"><i class="fa-solid fa-trophy text-warning me-2"></i> Monthly Challenge Progress</h4>
+                    <p class="text-muted small mb-0">Complete financial milestones to unlock exclusive achievement badges!</p>
+                </div>
+                <span class="badge bg-warning text-dark px-3 py-2 fw-bold">{{ gamification.unlocked_count }}/{{ gamification.total_badges }} Badges Unlocked</span>
+            </div>
+
+            <div class="progress bg-dark mb-2" style="height: 12px; border-radius: 6px;">
+                <div class="progress-bar bg-warning" role="progressbar" style="width: {{ gamification.challenge_progress }}%"></div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            {% for b in gamification.badges %}
+            <div class="col-md-6 col-lg-4">
+                <div class="glass-card p-4 text-center {% if not b.unlocked %}opacity-50{% endif %}">
+                    <div class="metric-icon-box mx-auto mb-3" style="width: 60px; height: 60px; font-size: 1.8rem; background: rgba(255,255,255,0.05);">
+                        <i class="{{ b.icon }}"></i>
+                    </div>
+                    <h5 class="fw-bold text-white mb-1">{{ b.title }}</h5>
+                    <p class="text-muted small mb-2">{{ b.description }}</p>
+                    <span class="badge {% if b.unlocked %}bg-success{% else %}bg-secondary{% endif %}">
+                        {% if b.unlocked %}Unlocked 🎉{% else %}Locked 🔒{% endif %}
+                    </span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Tab 3: Growth Simulator -->
+    <div class="tab-pane fade" id="growth-content" role="tabpanel">
+        <div class="glass-card p-4 mb-4">
+            <h4 class="fw-bold text-white mb-2"><i class="fa-solid fa-chart-line text-success me-2"></i> Multi-Decade Wealth Growth Simulator</h4>
+            <p class="text-muted small mb-4">Simulate long-term SIP wealth creation adjusted for inflation.</p>
+
+            <form id="growthSimForm" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label text-muted small">Monthly Investment (₹)</label>
+                    <input type="number" id="simMonthly" class="form-control" value="15000">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label text-muted small">Initial Principal (₹)</label>
+                    <input type="number" id="simInitial" class="form-control" value="100000">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label text-muted small">CAGR (% p.a)</label>
+                    <input type="number" step="0.5" id="simCagr" class="form-control" value="12">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label text-muted small">Inflation (% p.a)</label>
+                    <input type="number" step="0.5" id="simInflation" class="form-control" value="6">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label text-muted small">Horizon (Years)</label>
+                    <input type="number" id="simYears" class="form-control" value="15">
+                </div>
+            </form>
+        </div>
+
+        <div class="glass-card p-4">
+            <h5 class="fw-bold text-white mb-3">Projected Wealth Trajectory (Chart)</h5>
+            <div style="height: 300px;">
+                <canvas id="growthChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 4: Backup & Admin -->
+    <div class="tab-pane fade" id="backup-content" role="tabpanel">
+        <div class="row g-4">
+            <!-- Backup Box -->
+            <div class="col-md-6">
+                <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <h4 class="fw-bold text-white mb-2"><i class="fa-solid fa-database text-info me-2"></i> Database Backup</h4>
+                        <p class="text-muted small mb-4">Export a complete JSON backup of your entire financial database including incomes, expenses, budgets, investments, and goals.</p>
+                    </div>
+                    <a href="{{ url_for('bonus.download_backup') }}" class="btn btn-outline-info w-100 py-2">
+                        <i class="fa-solid fa-download me-2"></i> Download Complete Backup (.json)
+                    </a>
+                </div>
+            </div>
+
+            <!-- Admin Stats Box -->
+            <div class="col-md-6">
+                <div class="glass-card p-4 h-100">
+                    <h4 class="fw-bold text-white mb-3"><i class="fa-solid fa-server text-warning me-2"></i> Admin System Overview</h4>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="p-3 rounded bg-dark border border-secondary border-opacity-25">
+                                <span class="text-muted small d-block">Platform Users</span>
+                                <h4 class="fw-bold text-white mb-0">{{ total_system_users }}</h4>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 rounded bg-dark border border-secondary border-opacity-25">
+                                <span class="text-muted small d-block">Tracked Transactions</span>
+                                <h4 class="fw-bold text-white mb-0">{{ total_system_incomes + total_system_expenses }}</h4>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="p-3 rounded bg-dark border border-success border-opacity-25 text-center">
+                                <span class="text-muted small d-block mb-1">Total System Processed Volume</span>
+                                <h3 class="fw-bold text-success mb-0">{{ total_system_volume | currency }}</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let simChart = null;
+
+        function updateSim() {
+            const monthly = document.getElementById('simMonthly').value;
+            const initial = document.getElementById('simInitial').value;
+            const cagr = document.getElementById('simCagr').value;
+            const inflation = document.getElementById('simInflation').value;
+            const years = document.getElementById('simYears').value;
+
+            fetch("{{ url_for('bonus.growth_simulator') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    monthly_investment: monthly,
+                    initial_principal: initial,
+                    cagr: cagr,
+                    inflation: inflation,
+                    years: years
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                const labels = data.trajectory.map(d => d.year);
+                const nominal = data.trajectory.map(d => d.nominal_wealth);
+                const real = data.trajectory.map(d => d.real_wealth);
+                const invested = data.trajectory.map(d => d.total_invested);
+
+                const ctx = document.getElementById('growthChart').getContext('2d');
+                if (simChart) simChart.destroy();
+
+                simChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            { label: 'Nominal Future Wealth', data: nominal, borderColor: '#10B981', fill: false },
+                            { label: 'Inflation-Adjusted Real Value', data: real, borderColor: '#3B82F6', fill: false },
+                            { label: 'Total Amount Invested', data: invested, borderColor: '#64748B', borderDash: [5, 5], fill: false }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { ticks: { color: '#94A3B8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                            x: { ticks: { color: '#94A3B8' }, grid: { display: false } }
+                        },
+                        plugins: { legend: { labels: { color: '#94A3B8' } } }
+                    }
+                });
+            });
+        }
+
+        ['simMonthly', 'simInitial', 'simCagr', 'simInflation', 'simYears'].forEach(id => {
+            document.getElementById(id).addEventListener('input', updateSim);
+        });
+
+        updateSim();
+    });
+</script>
+{% endblock %}

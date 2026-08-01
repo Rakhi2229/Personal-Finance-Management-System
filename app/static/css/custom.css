@@ -1,0 +1,213 @@
+/* ==========================================================================
+   PFM PRO FINTECH DESIGN SYSTEM (Inspired by INDmoney, Groww, Stripe & CRED)
+   ========================================================================== */
+
+:root {
+  --bg-primary: #0B1220;
+  --bg-sidebar: #0F172A;
+  --bg-card: #1E293B;
+  --bg-card-secondary: #334155;
+  --accent-emerald: #10B981;
+  --accent-emerald-hover: #059669;
+  --accent-blue: #3B82F6;
+  --accent-warning: #F59E0B;
+  --accent-danger: #EF4444;
+  --text-primary: #FFFFFF;
+  --text-secondary: #CBD5E1;
+  --text-muted: #94A3B8;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --font-family: 'Poppins', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --card-radius: 16px;
+  --shadow-ind: 0 8px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Global Body Reset */
+body {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  font-family: var(--font-family) !important;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Typography Overrides */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary) !important;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.text-secondary-custom {
+  color: var(--text-secondary) !important;
+}
+
+/* Top Header Bar */
+.ind-top-bar {
+  background-color: #0F172A !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+  padding: 12px 28px;
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+}
+
+/* Glassmorphism Cards */
+.glass-card {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: var(--card-radius) !important;
+  box-shadow: var(--shadow-ind) !important;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.card-accent-bar {
+  border-left: 4px solid var(--accent-blue) !important;
+}
+
+.card-accent-green {
+  border-left: 4px solid var(--accent-emerald) !important;
+}
+
+/* Navigation Links */
+.nav-link {
+  color: var(--text-secondary) !important;
+  font-weight: 500;
+  font-size: 0.9rem;
+  padding: 0.6rem 1.1rem;
+  border-radius: 20px;
+  transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+  color: #FFFFFF !important;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.nav-link.active {
+  color: #FFFFFF !important;
+  background: var(--accent-emerald) !important;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+}
+
+/* Buttons */
+.btn-emerald, .btn-ind-green {
+  background-color: var(--accent-emerald) !important;
+  color: #FFFFFF !important;
+  border: none !important;
+  font-weight: 700 !important;
+  border-radius: 24px !important;
+  padding: 8px 22px !important;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+  transition: all 0.25s ease !important;
+}
+
+.btn-emerald:hover, .btn-ind-green:hover {
+  background-color: var(--accent-emerald-hover) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35);
+}
+
+/* Metric Icon Box */
+.metric-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.bg-income { background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); }
+.bg-expense { background: rgba(239, 68, 68, 0.15); color: var(--accent-danger); }
+.bg-savings { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); }
+.bg-investment { background: rgba(245, 158, 11, 0.15); color: var(--accent-warning); }
+
+/* Form Controls */
+.form-control, .form-select {
+  background-color: #0F172A !important;
+  border: 1px solid #475569 !important;
+  color: #FFFFFF !important;
+  border-radius: 10px !important;
+  padding: 10px 14px !important;
+  font-weight: 500 !important;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: var(--accent-emerald) !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2) !important;
+}
+
+.form-control::placeholder {
+  color: var(--text-muted) !important;
+}
+
+/* Date Picker Indicator */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(2) !important;
+  cursor: pointer !important;
+}
+
+/* Password Toggle Button */
+.btn-toggle-password {
+  background-color: #0F172A !important;
+  border: 1px solid #475569 !important;
+  border-left: none !important;
+  color: var(--text-secondary) !important;
+  border-top-right-radius: 10px !important;
+  border-bottom-right-radius: 10px !important;
+}
+
+/* Custom Tabs */
+.custom-groww-tabs .nav-link, .ind-tabs .nav-link {
+  color: var(--text-secondary) !important;
+  background-color: #0F172A !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 20px !important;
+  padding: 6px 18px !important;
+  font-weight: 600 !important;
+}
+
+.custom-groww-tabs .nav-link.active, .ind-tabs .nav-link.active {
+  color: #FFFFFF !important;
+  background-color: var(--accent-emerald) !important;
+  border-color: var(--accent-emerald) !important;
+}
+
+/* Tables */
+.table-dark-custom {
+  --bs-table-bg: transparent;
+  --bs-table-color: #FFFFFF;
+  border-color: var(--border-subtle);
+}
+
+.table-dark-custom th {
+  color: var(--text-secondary);
+  background-color: rgba(255, 255, 255, 0.02);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 14px 16px;
+}
+
+.table-dark-custom td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  color: #FFFFFF !important;
+}
+
+.table-dark-custom tbody tr:hover td {
+  background-color: rgba(255, 255, 255, 0.03);
+}

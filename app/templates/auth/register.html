@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - PFM FinTech Platform{% endblock %}
+
+{% block auth_content %}
+<div class="row justify-content-center align-items-center" style="min-height: 85vh;">
+    <div class="col-md-6 col-lg-5">
+        <div class="glass-card p-4 p-md-5">
+            <div class="text-center mb-4">
+                <div class="metric-icon-box bg-income mx-auto mb-3" style="width: 60px; height: 60px; font-size: 1.8rem;">
+                    <i class="fa-solid fa-user-plus"></i>
+                </div>
+                <h3 class="fw-bold text-white mb-2">Create Account</h3>
+                <p class="sub-text-bright">Join PFM Pro for Smart AI Financial Management</p>
+            </div>
+
+            <form action="{{ url_for('auth.register') }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" name="full_name" class="form-control" placeholder="e.g. John Doe" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Username</label>
+                        <input type="text" name="username" class="form-control" placeholder="johndoe" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" name="email" class="form-control" placeholder="john@example.com" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Password</label>
+                        <div class="input-group">
+                            <input type="password" name="password" id="regPassword" class="form-control" style="border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important;" placeholder="••••••••" required>
+                            <button class="btn btn-toggle-password" type="button" onclick="togglePassword('regPassword', 'regPassIcon')">
+                                <i class="fa-solid fa-eye" id="regPassIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Confirm Password</label>
+                        <div class="input-group">
+                            <input type="password" name="confirm_password" id="regConfirmPassword" class="form-control" style="border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important;" placeholder="••••••••" required>
+                            <button class="btn btn-toggle-password" type="button" onclick="togglePassword('regConfirmPassword', 'regConfirmIcon')">
+                                <i class="fa-solid fa-eye" id="regConfirmIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label">Investment Risk Tolerance</label>
+                        <select name="risk_tolerance" class="form-select">
+                            <option value="Conservative">Conservative (Low Risk / FD / PPF)</option>
+                            <option value="Moderate" selected>Moderate (Balanced / Index Funds)</option>
+                            <option value="Aggressive">Aggressive (High Return / Equity Stocks)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-emerald w-100 py-3 mt-4 mb-3">
+                    Create Account <i class="fa-solid fa-check-circle ms-2"></i>
+                </button>
+            </form>
+
+            <div class="text-center mt-3 pt-3 border-top border-secondary border-opacity-25">
+                <p class="sub-text-bright mb-0">Already registered? <a href="{{ url_for('auth.login') }}" class="text-success fw-bold text-decoration-none ms-1">Sign In</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function togglePassword(inputId, iconId) {
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+    if (input && icon) {
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Financial Intelligence - PFM FinTech Platform{% endblock %}
+{% block page_heading %}AI Financial Engine{% endblock %}
+
+{% block content %}
+<!-- Section 1: AI Spending Predictor (Scikit-Learn ML) -->
+<div class="glass-card p-4 mb-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h4 class="fw-bold text-white mb-1"><i class="fa-solid fa-wand-magic-sparkles text-warning me-2"></i> AI Spending Predictor (Scikit-Learn)</h4>
+            <p class="text-muted small mb-0">ML Linear/Ridge Regression model forecasting future expenditure based on historical spending velocity.</p>
+        </div>
+        <span class="badge bg-warning text-dark px-3 py-2 fw-bold">ML Predictive Engine</span>
+    </div>
+
+    <!-- Warnings & Risk Alerts -->
+    {% if prediction.warnings %}
+        {% for w in prediction.warnings %}
+        <div class="alert alert-warning glass-card mb-3 py-2 px-3 small border-warning border-opacity-50">
+            {{ w }}
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="p-3 rounded bg-dark border border-secondary border-opacity-25 text-center">
+                <span class="text-muted small text-uppercase d-block mb-1">Predicted Next Week</span>
+                <h3 class="fw-bold text-white mb-0">{{ prediction.next_week | currency }}</h3>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="p-3 rounded bg-dark border border-primary border-opacity-25 text-center">
+                <span class="text-muted small text-uppercase d-block mb-1">Predicted Next Month</span>
+                <h3 class="fw-bold text-primary mb-0">{{ prediction.next_month | currency }}</h3>
+                <small class="{% if prediction.trend_percentage > 0 %}text-danger{% else %}text-success{% endif %}">
+                    Trend: {% if prediction.trend_percentage > 0 %}+{% endif %}{{ prediction.trend_percentage }}% vs avg
+                </small>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="p-3 rounded bg-dark border border-info border-opacity-25 text-center">
+                <span class="text-muted small text-uppercase d-block mb-1">Predicted Next Quarter</span>
+                <h3 class="fw-bold text-info mb-0">{{ prediction.next_quarter | currency }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Section 2: AI Smart Budget Planner -->
+<div class="glass-card p-4 mb-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h4 class="fw-bold text-white mb-1"><i class="fa-solid fa-brain text-success me-2"></i> AI Smart Budget Recommendation</h4>
+            <p class="text-muted small mb-0">Custom allocation based on your monthly income ({{ smart_budget.monthly_income | currency }}) & 50/30/20 Wealth Rule.</p>
+        </div>
+        <form action="{{ url_for('ai.apply_smart_budget') }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-emerald"><i class="fa-solid fa-check me-1"></i> Apply AI Budget</button>
+        </form>
+    </div>
+
+    <!-- Category Allocation Table -->
+    <div class="row g-3">
+        {% for cat, val in smart_budget.category_allocations.items() %}
+        <div class="col-6 col-md-4 col-lg-3">
+            <div class="p-3 rounded bg-dark border border-secondary border-opacity-25">
+                <div class="text-muted small mb-1">{{ cat }}</div>
+                <div class="fw-bold text-white">{{ val | currency }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Section 3: Dynamic Financial Insights -->
+<div class="glass-card p-4">
+    <h4 class="fw-bold text-white mb-3"><i class="fa-solid fa-lightbulb text-info me-2"></i> Intelligent Financial Insights</h4>
+    <div class="row g-3">
+        {% if insights %}
+            {% for item in insights %}
+            <div class="col-md-6">
+                <div class="p-3 rounded bg-dark border border-{{ item.type }} border-opacity-50">
+                    <h6 class="fw-bold text-{{ item.type }} mb-1">{{ item.title }}</h6>
+                    <p class="text-muted small mb-0">{{ item.message }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12 text-center text-muted py-3">
+                No active insight warnings. Your finances are running smoothly!
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

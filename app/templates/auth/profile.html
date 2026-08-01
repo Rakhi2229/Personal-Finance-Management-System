@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}User Profile - PFM FinTech Platform{% endblock %}
+{% block page_heading %}Account Settings & Profile{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Profile Info Card -->
+    <div class="col-md-6">
+        <div class="glass-card p-4">
+            <h5 class="fw-bold text-white mb-4"><i class="fa-solid fa-user-gear me-2 text-success"></i> Personal Information</h5>
+            
+            <form action="{{ url_for('auth.profile') }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-semibold">Full Name</label>
+                    <input type="text" name="full_name" class="form-control" value="{{ current_user.full_name }}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-semibold">Username (Read Only)</label>
+                    <input type="text" class="form-control text-muted" value="{{ current_user.username }}" readonly disabled>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-semibold">Email Address (Read Only)</label>
+                    <input type="email" class="form-control text-muted" value="{{ current_user.email }}" readonly disabled>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <label class="form-label text-muted small fw-semibold">Currency</label>
+                        <select name="currency" class="form-select">
+                            <option value="INR" {% if current_user.currency == 'INR' %}selected{% endif %}>INR (₹)</option>
+                            <option value="USD" {% if current_user.currency == 'USD' %}selected{% endif %}>USD ($)</option>
+                            <option value="EUR" {% if current_user.currency == 'EUR' %}selected{% endif %}>EUR (€)</option>
+                        </select>
+                    </div>
+
+                    <div class="col-6">
+                        <label class="form-label text-muted small fw-semibold">Risk Tolerance</label>
+                        <select name="risk_tolerance" class="form-select">
+                            <option value="Conservative" {% if current_user.risk_tolerance == 'Conservative' %}selected{% endif %}>Conservative</option>
+                            <option value="Moderate" {% if current_user.risk_tolerance == 'Moderate' %}selected{% endif %}>Moderate</option>
+                            <option value="Aggressive" {% if current_user.risk_tolerance == 'Aggressive' %}selected{% endif %}>Aggressive</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label text-muted small fw-semibold">Monthly Target Savings (₹)</label>
+                    <input type="number" step="100" name="monthly_target_savings" class="form-control" value="{{ current_user.monthly_target_savings }}">
+                </div>
+
+                <button type="submit" class="btn btn-emerald w-100 py-2">Save Profile Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Security & Password Change Card -->
+    <div class="col-md-6">
+        <div class="glass-card p-4">
+            <h5 class="fw-bold text-white mb-4"><i class="fa-solid fa-lock me-2 text-warning"></i> Security & Password</h5>
+            
+            <form action="{{ url_for('auth.change_password') }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-semibold">Current Password</label>
+                    <input type="password" name="current_password" class="form-control" placeholder="••••••••" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-semibold">New Password</label>
+                    <input type="password" name="new_password" class="form-control" placeholder="••••••••" required>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label text-muted small fw-semibold">Confirm New Password</label>
+                    <input type="password" name="confirm_password" class="form-control" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" class="btn btn-outline-warning w-100 py-2">Update Password</button>
+            </form>
+        </div>
+
+        <!-- Account Data Reset Card -->
+        <div class="glass-card p-4 mt-4 border-danger border-opacity-25">
+            <h5 class="fw-bold text-white mb-2"><i class="fa-solid fa-trash-can me-2 text-danger"></i> Reset Account Data</h5>
+            <p class="text-muted small mb-3">Clear all pre-filled expenses, incomes, budgets, and investments to start with a 100% clean account.</p>
+
+            <form action="{{ url_for('auth.reset_data') }}" method="POST" onsubmit="return confirm('Are you sure you want to delete all expenses, budgets, and financial records? This action cannot be undone.');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-outline-danger w-100 py-2">
+                    <i class="fa-solid fa-rotate-left me-2"></i> Clear All Pre-Filled Data
+                </button>
+            </form>
+        </div>
+    </div>
+</div>{% endblock %}

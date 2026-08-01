@@ -1,0 +1,30 @@
+# Python virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# SQLite Database & Local instance data
+instance/
+*.db
+*.sqlite3
+
+# Environment variables & secrets
+.env
+
+# IDE & OS temporary files
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Flask session & reports temporary downloads
+app/reports/generated/*
+!app/reports/generated/.gitkeep
