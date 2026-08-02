@@ -12,6 +12,8 @@ from app.services.notification_service import check_and_generate_notifications
 
 dashboard_bp = Blueprint('dashboard', __name__)
 
+import calendar
+
 @dashboard_bp.route('/')
 @dashboard_bp.route('/dashboard')
 @login_required
@@ -22,6 +24,8 @@ def index():
     # Time Boundaries
     start_of_week = today - timedelta(days=today.weekday())
     start_of_month = date(today.year, today.month, 1)
+    _, last_day = calendar.monthrange(today.year, today.month)
+    end_of_month = date(today.year, today.month, last_day)
     start_of_quarter = date(today.year, 3 * ((today.month - 1) // 3) + 1, 1)
     start_of_year = date(today.year, 1, 1)
 
@@ -38,14 +42,14 @@ def index():
     total_income = sum(i.amount for i in incomes)
 
     weekly_expenses = sum(e.amount for e in expenses if e.date >= start_of_week)
-    monthly_expenses = sum(e.amount for e in expenses if e.date >= start_of_month)
+    monthly_expenses = sum(e.amount for e in expenses if start_of_month <= e.date <= end_of_month)
     quarterly_expenses = sum(e.amount for e in expenses if e.date >= start_of_quarter)
     yearly_expenses = sum(e.amount for e in expenses if e.date >= start_of_year)
     total_expenses = sum(e.amount for e in expenses)
 
     # Savings = Income - Expenses
     weekly_income = sum(i.amount for i in incomes if i.date >= start_of_week)
-    monthly_income = sum(i.amount for i in incomes if i.date >= start_of_month)
+    monthly_income = sum(i.amount for i in incomes if start_of_month <= i.date <= end_of_month)
     quarterly_income = sum(i.amount for i in incomes if i.date >= start_of_quarter)
     yearly_income = sum(i.amount for i in incomes if i.date >= start_of_year)
 
